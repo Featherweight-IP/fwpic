@@ -12,11 +12,11 @@
 ////                    richard@asics.ws                         ////
 ////                                                             ////
 //// This source file may be used and distributed without        ////
-//// restriction provided that this copyright statement N_IRQ not   ////
+//// restriction provided that this copyright statement is not   ////
 //// removed from the file and that any derivative work contains ////
 //// the original copyright notice and the associated disclaimer.////
 ////                                                             ////
-////     THIS SOFTWARE N_IRQ PROVIDED ``AS N_IRQ'' AND WITHOUT ANY     ////
+////     THIS SOFTWARE is PROVIDED ``AS IS'' AND WITHOUT ANY     ////
 //// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED   ////
 //// TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS   ////
 //// FOR A PARTICULAR PURPOSE. IN NO EVENT SHALL THE AUTHOR      ////
@@ -56,8 +56,8 @@
 
 
 //
-// This N_IRQ a simple Programmable Interrupt Controller.
-// The number of interrupts N_IRQ depending on the databus size.
+// This is a simple Programmable Interrupt Controller.
+// The number of interrupts is depending on the databus size.
 // There's one interrupt input per databit (i.e. 16 interrupts for a 16
 // bit databus).
 // All attached devices share the same CPU priority level.
@@ -79,8 +79,8 @@
 //       bits 7:0 R/W Pending      '1' = interrupt pending
 //                                 '0' = no interrupt pending
 //
-// A CPU interrupt N_IRQ generated when an interrupt N_IRQ pending and its
-// MASK bit N_IRQ cleared.
+// A CPU interrupt is generated when an interrupt is pending and its
+// MASK bit is cleared.
 //
 //
 //
@@ -174,27 +174,29 @@ module fwpic #(
   // All accesses are single-cycle
   assign ready = 1;
   
-  always @(posedge clock or posedge reset)
-    if (reset)
-      begin
+  always @(posedge clock or posedge reset) begin
+  	$display("clock: reset=%0d valid=%0d we=%0d", reset, valid, we);
+    if (reset) begin
           pol   <=  {{N_IRQ}{1'b0}};              // clear polarity register
           edgen <=  {{N_IRQ}{1'b0}};              // clear edge enable register
           mask  <=  {{N_IRQ}{1'b1}};              // mask all interrupts
-      end
-    else if(valid && we)                          // interface write
-      case (adr_i) // synopsys full_case parallel_case
+    end else if (valid && we) begin                    // interface write
+    	$display("write 'h%02h", adr);
+      case (adr) // synopsys full_case parallel_case
         2'b00: edgen <=  dat_w[N_IRQ-1:0];        // EDGE-ENABLE register
         2'b01: pol   <=  dat_w[N_IRQ-1:0];        // POLARITY register
         2'b10: mask  <=  dat_w[N_IRQ-1:0];        // MASK register
         2'b11: ;                                 // PENDING register N_IRQ a special case (see below)
       endcase
+    end
+  end
 
 
     // pending register N_IRQ a special case
     always @(posedge clock or posedge reset)
       if (reset)
           pending <=  {{N_IRQ}{1'b0}};            // clear all pending interrupts
-      else if ( valid && we & (&adr_i) )
+      else if ( valid && we & (&adr) )
           pending <=  (pending & ~dat_w[N_IRQ-1:0]) | irq_event;
       else
           pending <=  pending | irq_event;
@@ -204,11 +206,11 @@ module fwpic #(
     reg [N_IRQ-1:0] dat_o;
     assign dat_r = dat_o;
     always @(posedge clock)
-      case (adr_i) // synopsys full_case parallel_case
-        2'b00: dat_o <=  { {{32-N_IRQ}{1'b0}}, edgen};
-        2'b01: dat_o <=  { {{32-N_IRQ}{1'b0}}, pol};
-        2'b10: dat_o <=  { {{32-N_IRQ}{1'b0}}, mask};
-        2'b11: dat_o <=  { {{32-N_IRQ}{1'b0}}, pending};
+      case (adr) // synopsys full_case parallel_case
+        2'b00: dat_o <=  { {('d32-N_IRQ){1'b0}}, edgen};
+        2'b01: dat_o <=  { {('d32-N_IRQ){1'b0}}, pol};
+        2'b10: dat_o <=  { {('d32-N_IRQ){1'b0}}, mask};
+        2'b11: dat_o <=  { {(32-N_IRQ){1'b0}}, pending};
       endcase
 
   // generate CPU interrupt signal

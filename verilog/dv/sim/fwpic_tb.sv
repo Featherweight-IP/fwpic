@@ -29,6 +29,7 @@ module fwpic_tb(input clock);
 			clk_r <= ~clk_r;
 		end
 	end
+	assign clock = clk_r;
 `endif
 	
 `ifdef IVERILOG
@@ -39,15 +40,16 @@ module fwpic_tb(input clock);
 			.clock(clock),
 			.reset(reset)
 		);
-	
-	
+
+	wire[7:0]			irq;
+	wire				int_req;
 	
 	`RV_ADDR_LINE_EN_WIRES(bfm2dut_, 4, 32);
 	
 	rv_addr_line_en_initiator_bfm #(
 			.ADR_WIDTH(4),
 			.DAT_WIDTH(32)
-		) u_bfm (
+		) u_reg_bfm (
 			.clock(clock),
 			.reset(reset),
 			`RV_ADDR_LINE_EN_CONNECT(, bfm2dut_)
@@ -58,7 +60,9 @@ module fwpic_tb(input clock);
 		) fwpic (
 		.clock  (clock ), 
 		.reset  (reset ), 
-		`RV_ADDR_LINE_EN_CONNECT(, bfm2dut_)
+		`RV_ADDR_LINE_EN_CONNECT(, bfm2dut_),
+		.irq(irq),
+		.int_o(int_req)
 		);
 
 endmodule
