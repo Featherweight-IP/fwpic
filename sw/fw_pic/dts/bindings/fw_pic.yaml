@@ -1,0 +1,27 @@
+
+description: Featherweight IP programmable interrupt controller
+
+compatible: "fw_pic"
+
+include: [interrupt-controller.yaml, base.yaml]
+
+properties:
+    reg:
+        required: true
+    
+    "#interrupt-cells":
+        const: 1
+        
+    num-irqs:
+        type: int
+        required: true
+        description: Number of IRQs the intc supports
+        
+    irq:
+        type: int
+        required: true
+        description: Interrupt index for PIC
+        
+interrupt-cells:
+    - irq
+    

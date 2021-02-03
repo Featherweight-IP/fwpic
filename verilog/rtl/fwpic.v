@@ -118,8 +118,9 @@ module fwpic #(
 		) (
 		input clock, 
 		input reset, 
-		`RV_ADDR_LINE_EN_TARGET_PORT(,4,32),
-		output 				int_o,
+		// Note: expected to be a word address
+		`RV_ADDR_LINE_EN_TARGET_PORT(,2,32),
+		output reg			int_o,
 		input[N_IRQ-1:0]	irq
 );
 
@@ -127,7 +128,8 @@ module fwpic #(
   //
   //  Module body
   //
-  reg  [N_IRQ:1] pol, edgen, pending, mask;   // register bank
+  wire [N_IRQ:1] pending;
+  reg  [N_IRQ:1] pol, edgen, mask;   // register bank
   reg  [N_IRQ:1] lirq, dirq;                  // latched irqs, delayed latched irqs
 
 
@@ -170,18 +172,19 @@ module fwpic #(
   always @(posedge clock)
     for(n=1; n<=N_IRQ; n=n+1)
       irq_event[n] <=  trigger(edgen[n], pol[n], lirq[n], dirq[n]);
+  assign pending = irq_event;
 
   // All accesses are single-cycle
   assign ready = 1;
   
   always @(posedge clock or posedge reset) begin
-  	$display("clock: reset=%0d valid=%0d we=%0d", reset, valid, we);
+//  	$display("clock: reset=%0d valid=%0d we=%0d", reset, valid, we);
     if (reset) begin
           pol   <=  {{N_IRQ}{1'b0}};              // clear polarity register
           edgen <=  {{N_IRQ}{1'b0}};              // clear edge enable register
           mask  <=  {{N_IRQ}{1'b1}};              // mask all interrupts
     end else if (valid && we) begin                    // interface write
-    	$display("write 'h%02h", adr);
+//    	$display("write 'h%02h", adr);
       case (adr) // synopsys full_case parallel_case
         2'b00: edgen <=  dat_w[N_IRQ-1:0];        // EDGE-ENABLE register
         2'b01: pol   <=  dat_w[N_IRQ-1:0];        // POLARITY register
@@ -192,14 +195,18 @@ module fwpic #(
   end
 
 
+`ifdef UNDEFINED
     // pending register N_IRQ a special case
-    always @(posedge clock or posedge reset)
-      if (reset)
+    always @(posedge clock or posedge reset) begin
+      if (reset) begin
           pending <=  {{N_IRQ}{1'b0}};            // clear all pending interrupts
-      else if ( valid && we & (&adr) )
+      end else if ( valid && we & adr == 2'b11 ) begin
           pending <=  (pending & ~dat_w[N_IRQ-1:0]) | irq_event;
-      else
+      end else begin
           pending <=  pending | irq_event;
+      end
+    end
+`endif
 
     //
     // generate dat_o
@@ -214,7 +221,6 @@ module fwpic #(
       endcase
 
   // generate CPU interrupt signal
-  reg int_o;
   always @(posedge clock)
     int_o <=  |(pending & ~mask);
 

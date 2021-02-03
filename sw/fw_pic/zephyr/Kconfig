@@ -1,0 +1,11 @@
+
+
+menuconfig FW_PIC
+        bool "Featherweight IP PIC"
+        default y
+#       select TICKLESS_CAPABLE
+        help
+          This module implements a kernel device driver for the 
+          Featherweight IP programmable interrupt controller
+
+          

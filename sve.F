@@ -1,6 +1,5 @@
 
--F ./packages/sve.F
 
-./verilog/rtl/fwpic.v
+-F ./verilog/rtl/sve.F
 
 
