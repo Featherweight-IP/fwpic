@@ -1,0 +1,29 @@
+package:
+    name: fwpic
+    version: None
+    deps:
+        - name: fwprotocol-defs
+          url: https://github.com/Featherweight-IP/fwprotocol-defs.git
+          type: raw
+        - name: cocotb
+          type: python
+          src: pypi
+        - name: vlsim
+          type: python
+          src: pypi
+        - name: pybfms
+          url: https://github.com/pybfms/pybfms.git
+          type: python
+        - name: pybfms-gpio
+          url: https://github.com/pybfms/pybfms-gpio.git
+          type: python
+        - name: pybfms-rv
+          url: https://github.com/pybfms/pybfms-rv.git
+          type: python
+        - name: mkdv
+          url: https://github.com/fvutils/mkdv.git
+          type: python
+    dev-deps:
+        - name: fwprotocol-defs
+          url: https://github.com/Featherweight-IP/fwprotocol-defs.git
+          type: raw
